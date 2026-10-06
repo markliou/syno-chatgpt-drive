@@ -4,15 +4,19 @@
 
 Goal: prove the two foundations before implementing a broad tool set.
 
-- [ ] Create minimal MCP v2 TypeScript server using `@modelcontextprotocol/server`
-- [ ] Serve HTTP through `createMcpHandler()`
+**P0 prerequisite for every phase:** all development, build, test, diagnostics, and runtime execution must occur inside containers. No project dependency may be installed on the host.
+
+- [ ] Add reproducible multi-stage Dockerfile for Rust build/runtime
+- [ ] Add container-only development/test commands
+- [ ] Create minimal MCP v2 Rust server using official `rmcp`
+- [ ] Serve MCP 2026-07-28 over containerized Streamable HTTP
 - [ ] Verify modern 2026-07-28 per-request operation
 - [ ] Confirm no dependency on `Mcp-Session-Id` or sticky sessions
 - [ ] Validate Synology Drive/Office API endpoint compatibility
 - [ ] Determine whether DSM OAuth user access tokens work directly with required Drive APIs
 - [ ] Document required DSM / Drive versions and OAuth scopes
 
-**Exit criterion:** one authenticated user can execute a read-only Drive call through a stateless MCP v2 request.
+**Exit criterion:** from a clean host with only a container engine, one authenticated user can execute a read-only Drive call through a stateless MCP v2 request.
 
 ## Phase 1 — Read-only delegated access
 
