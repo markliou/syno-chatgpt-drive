@@ -8,6 +8,13 @@ The goal is deliberately narrow:
 
 This project is **not** intended to create a second folder-permission system inside MCP.
 
+## P0 engineering rule: container-only
+
+**All build, test, lint, debug, packaging, and runtime work MUST happen inside containers. The host MUST NOT install Rust/Cargo or any project dependency.**
+
+Agents and contributors must modify the container image/workflow instead of installing missing tooling on the host. See the normative [Project Specification](docs/SPEC.md).
+
+
 ## Design target
 
 - **MCP v2 / 2026-07-28 protocol**
@@ -73,7 +80,7 @@ For HTTP serving this means:
 - any worker may handle any request;
 - multi-round-trip state, if ever required, must use an explicit integrity-protected `requestState` handle rather than hidden server session state.
 
-The TypeScript implementation should use the v2 `@modelcontextprotocol/server` package and `createMcpHandler()`.
+The implementation is Rust and should use the official `modelcontextprotocol/rust-sdk` (`rmcp`) with Streamable HTTP configured for the MCP 2026-07-28 stateless path.
 
 **Stateless does not mean storage-free.** Long-lived identity links, encrypted downstream OAuth credentials, audit records, and revocation metadata may be stored externally. They must not become process-local conversational/session state.
 
