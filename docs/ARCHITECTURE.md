@@ -1,5 +1,18 @@
 # Architecture
 
+## 0. P0 execution constraint
+
+The project is **container-only**.
+
+- The host MUST NOT install Rust, Cargo, native project libraries, test tools, or application dependencies.
+- Build, test, lint, debug, conformance testing, and server execution MUST run inside containers.
+- Dependency installation belongs in checked-in OCI/Docker build definitions.
+- Development agents MUST change the container workflow rather than install anything on the host.
+- CI MUST exercise the same containerized build/test path.
+
+This constraint has higher priority than developer convenience. See [Project Specification](SPEC.md).
+
+
 ## 1. Objective
 
 `syno-chatgpt-drive` provides Synology Drive access to ChatGPT and other MCP hosts without collapsing all callers into a shared NAS identity.
@@ -23,7 +36,7 @@ Synology remains the authoritative policy enforcement point for users, groups, s
 +----------+----------+
 | Stateless MCP       |
 | HTTP Endpoint       |
-| createMcpHandler()  |
+| the `rmcp` Streamable HTTP server  |
 +----------+----------+
            |
            | RequestContext
@@ -143,9 +156,10 @@ The credential resolver is the key abstraction.
 
 Conceptual interface:
 
-```ts
-interface SynologyCredentialResolver {
-  resolve(principal: Principal): Promise<SynologyCredential>;
+```rust
+#[async_trait]
+trait SynologyCredentialResolver {
+    async fn resolve(&self, principal: &Principal) -> Result<SynologyCredential>;
 }
 ```
 
@@ -163,12 +177,12 @@ Drive tools should be independent of authentication mechanics.
 
 Desired dependency flow:
 
-```ts
-const principal = requestContext.principal;
-const credential = await resolver.resolve(principal);
-const synology = synologyClientFactory.create(credential);
+```rust
+let principal = request_context.principal();
+let credential = resolver.resolve(&principal).await?;
+let synology = synology_client_factory.create(credential);
 
-return driveTools.search(synology, input);
+drive_tools.search(&synology, input).await
 ```
 
 This makes the existing Drive tool logic reusable while replacing single-user authentication.
